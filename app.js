@@ -6,6 +6,9 @@ require("dotenv/config");
 const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URI = process.env.MONGO_URI;
 
+const app = express();
+app.use(express.json());
+
 const User = require("./models/user");
 const Products = require("./models/products");
 const Orders = require("./models/orders");
@@ -51,7 +54,6 @@ app.post("/login", async (req, res) => {
 	}
 });
 
-const app = express();
-app.use(express.json());
+
 
 app.listen(3000);
