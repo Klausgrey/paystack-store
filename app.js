@@ -77,6 +77,7 @@ app.get("/products", async (req, res) => {
 });
 
 app.post("/orders/:productId", verifyToken, async (req, res) => {
+	console.log("order route hit");
 	const productId = req.params.productId;
 	const userId = req.user.id;
 
@@ -93,7 +94,22 @@ app.post("/orders/:productId", verifyToken, async (req, res) => {
 			{ email: req.user.email, amount: productPrice * 100 },
 			{ headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` } },
 		);
-		res.json({ paymentUrl: response.data.data.authorization_url });
+		const reference = response.data.data.reference;
+		await Orders.findOneAndUpdate({ userId, productId }, { reference });
+	} catch (err) {
+		res.json({ err });
+	}
+});
+
+app.post("/webhook/paystack", async (req, res) => {
+	const reference = req.body.data.reference;
+
+
+	try {
+		if (req.body.event === "charge.success") {
+			await Orders.findOneAndUpdate({ reference }, { status: "paid" });
+			return res.sendStatus(200)
+		}
 	} catch (err) {
 		res.json({ err });
 	}
